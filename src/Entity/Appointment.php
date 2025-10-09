@@ -33,6 +33,10 @@ class Appointment
     #[ORM\JoinColumn(nullable: false)]
     private ?AppointmentType $appointmentType = null;
 
+    #[ORM\ManyToOne(targetEntity: Professional::class, inversedBy: 'appointments')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Professional $professional = null;
+
     public const STATUS_SCHEDULED = 'scheduled';
     public const STATUS_CONFIRMED = 'confirmed';
     public const STATUS_CANCELLED = 'cancelled';
@@ -141,6 +145,19 @@ class Appointment
             }
         }
 
+        return $this;
+    }
+
+
+    // Getter / Setter
+    public function getProfessional(): ?Professional
+    {
+        return $this->professional;
+    }
+
+    public function setProfessional(?Professional $professional): static
+    {
+        $this->professional = $professional;
         return $this;
     }
 }

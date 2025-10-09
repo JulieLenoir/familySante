@@ -2,10 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\ProfessionalRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\ProfessionalRepository;
 
+use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Doctrine\Common\Collections\ArrayCollection;
 
 #[ORM\Entity(repositoryClass: ProfessionalRepository::class)]
 #[UniqueEntity(
@@ -41,6 +43,16 @@ class Professional
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $additionalInformation = null;
+
+    #[ORM\OneToMany(mappedBy: 'professional', targetEntity: Appointment::class)]
+    private Collection $appointments;
+
+    public function __construct()
+    {
+        $this->appointments = new ArrayCollection();
+    }
+
+
 
     public function getId(): ?int
     {
@@ -128,6 +140,33 @@ class Professional
     {
         $this->additionalInformation = $additionalInformation;
 
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Appointment>
+     */
+    public function getAppointments(): Collection
+    {
+        return $this->appointments;
+    }
+
+    public function addAppointment(Appointment $appointment): static
+    {
+        if (!$this->appointments->contains($appointment)) {
+            $this->appointments->add($appointment);
+            $appointment->setProfessional($this);
+        }
+        return $this;
+    }
+
+    public function removeAppointment(Appointment $appointment): static
+    {
+        if ($this->appointments->removeElement($appointment)) {
+            if ($appointment->getProfessional() === $this) {
+                $appointment->setProfessional(null);
+            }
+        }
         return $this;
     }
 }

@@ -25,7 +25,7 @@ composer.phar
 
 # --- Doctrine Migrations  ---
 /migrations/*_*.php
-
+/migrations/
 # --- IDE / éditeurs ---
 .vscode/
 .idea/

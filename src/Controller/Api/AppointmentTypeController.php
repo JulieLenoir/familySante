@@ -68,42 +68,42 @@ class AppointmentTypeController extends AbstractController
             'description' => $appointmentType->getDescription(),
         ], 201);
     }
-    // PUT /api/appointment-types/{id} → met à jour un type de rendez-vous
-    #[Route('/{id}', name: 'update', methods: ['PUT'])]
-    public function update(Request $request, AppointmentType $appointmentType, EntityManagerInterface $em): JsonResponse
-    {
-        if (!$appointmentType) {
-            return $this->json(['error' => 'Appointment Type not found'], 404);
-        }
+    // // PUT /api/appointment-types/{id} → met à jour un type de rendez-vous
+    // #[Route('/{id}', name: 'update', methods: ['PUT'])]
+    // public function update(Request $request, AppointmentType $appointmentType, EntityManagerInterface $em): JsonResponse
+    // {
+    //     if (!$appointmentType) {
+    //         return $this->json(['error' => 'Appointment Type not found'], 404);
+    //     }
 
-        $data = json_decode($request->getContent(), true);
+    //     $data = json_decode($request->getContent(), true);
 
-        if (isset($data['name'])) {
-            $appointmentType->setName($data['name']);
-        }
-        if (array_key_exists('description', $data)) {
-            $appointmentType->setDescription($data['description']);
-        }
+    //     if (isset($data['name'])) {
+    //         $appointmentType->setName($data['name']);
+    //     }
+    //     if (array_key_exists('description', $data)) {
+    //         $appointmentType->setDescription($data['description']);
+    //     }
 
-        $em->flush();
+    //     $em->flush();
 
-        return $this->json([
-            'id' => $appointmentType->getId(),
-            'name' => $appointmentType->getName(),
-            'description' => $appointmentType->getDescription(),
-        ]);
-    }
-    // DELETE /api/appointment-types/{id} → supprime un type de rendez-vous
-    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(AppointmentType $appointmentType, EntityManagerInterface $em): JsonResponse
-    {
-        if (!$appointmentType) {
-            return $this->json(['error' => 'Appointment Type not found'], 404);
-        }
+    //     return $this->json([
+    //         'id' => $appointmentType->getId(),
+    //         'name' => $appointmentType->getName(),
+    //         'description' => $appointmentType->getDescription(),
+    //     ]);
+    // }
+    // // DELETE /api/appointment-types/{id} → supprime un type de rendez-vous
+    // #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
+    // public function delete(AppointmentType $appointmentType, EntityManagerInterface $em): JsonResponse
+    // {
+    //     if (!$appointmentType) {
+    //         return $this->json(['error' => 'Appointment Type not found'], 404);
+    //     }
 
-        $em->remove($appointmentType);
-        $em->flush();
+    //     $em->remove($appointmentType);
+    //     $em->flush();
 
-        return $this->json(['message' => 'Appointment Type deleted successfully']);
-    }
+    //     return $this->json(['message' => 'Appointment Type deleted successfully']);
+    // }
 }

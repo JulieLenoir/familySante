@@ -16,7 +16,7 @@ use Symfony\Component\Routing\Annotation\Route;
  * - Routes en attributs (prefix: /api/professionals)
  * - Réponses JSON via $this->json()
  */
-#[Route('/api/professionals', name: 'api_professionals_')]
+#[Route('/api/v1/professionals', name: 'api_professionals_')]
 class ProfessionalController extends AbstractController
 {
     /**

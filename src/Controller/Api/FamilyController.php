@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/api/families', name: 'api_families_')]
+#[Route('/api/v1/families', name: 'api_families_')]
 class FamilyController extends AbstractController
 {
     // GET /api/families → liste toutes les familles

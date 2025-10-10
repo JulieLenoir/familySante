@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
 #[Route('/api/appointments', name: 'api_appointments_')]
-class AppointmentsController extends AbstractController
+class AppointmentController extends AbstractController
 {
     // GET /api/appointments → liste tous les rendez-vous
     #[Route('', name: 'list', methods: ['GET'])]

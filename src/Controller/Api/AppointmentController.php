@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/api/appointments', name: 'api_appointments_')]
+#[Route('/api/v1/appointments', name: 'api_appointments_')]
 class AppointmentController extends AbstractController
 {
     // GET /api/appointments → liste tous les rendez-vous

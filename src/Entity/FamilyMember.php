@@ -2,11 +2,12 @@
 
 namespace App\Entity;
 
-use App\Repository\FamilyMemberRepository;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\FamilyMemberRepository;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: FamilyMemberRepository::class)]
 class FamilyMember
@@ -14,21 +15,27 @@ class FamilyMember
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['familyMember:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['familyMember:read', 'familyMember:write'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['familyMember:read', 'familyMember:write'])]
     private ?string $lastName = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
-    private ?\DateTime $birthDate = null;
+    #[Groups(['familyMember:read', 'familyMember:write'])]
+    private ?\DateTimeInterface $birthDate = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['familyMember:read', 'familyMember:write'])]
     private ?string $relation = null;
 
     #[ORM\ManyToOne(inversedBy: 'familyMembers')]
+    #[Groups(['familyMember:read'])]
     #[ORM\JoinColumn(nullable: false)]
     private ?Family $family = null;
 
@@ -36,6 +43,7 @@ class FamilyMember
      * @var Collection<int, Appointment>
      */
     #[ORM\OneToMany(targetEntity: Appointment::class, mappedBy: 'familyMember', orphanRemoval: true)]
+    #[Groups(['familyMember:read'])]
     private Collection $appointments;
 
     public function __construct()

@@ -3,6 +3,7 @@
 namespace App\Controller\Api;
 
 use App\Entity\FamilyMember;
+use App\Entity\Family;
 use App\Repository\FamilyMemberRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -69,13 +70,16 @@ class FamilyMemberController extends AbstractController
             $familyMember->setRelation($data['relation']);
         }
         if (!empty($data['family_id'])) {
-            $family = $em->getRepository('App:Family')->find($data['family_id']);
+            $family = $em->getRepository(Family::class)->find($data['family_id']);
             if ($family) {
                 $familyMember->setFamily($family);
             } else {
                 return $this->json(['error' => 'Family not found'], 400);
             }
         }
+
+
+
 
         $em->persist($familyMember);
         $em->flush();

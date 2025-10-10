@@ -24,6 +24,7 @@ class AppointmentController extends AbstractController
         $data = array_map(function (Appointment $appointment) {
             return [
                 'id' => $appointment->getId(),
+                'title' => $appointment->getTitle(),
                 'date' => $appointment->getDate()->format('Y-m-d H:i:s'),
                 'status' => $appointment->getStatus(),
                 'type' => $appointment->getAppointmentType(),
@@ -45,6 +46,7 @@ class AppointmentController extends AbstractController
 
         return $this->json([
             'id' => $appointment->getId(),
+            'title' => $appointment->getTitle(),
             'date' => $appointment->getDate()->format('Y-m-d H:i:s'),
             'status' => $appointment->getStatus(),
             'type' => $appointment->getAppointmentType(),
@@ -60,11 +62,12 @@ class AppointmentController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
 
-        if (empty($data['date']) || empty($data['status']) || empty($data['type']) || empty($data['professional_id']) || empty($data['family_id'])) {
+        if (empty($data['title']) || empty($data['date']) || empty($data['status']) || empty($data['type']) || empty($data['professional_id']) || empty($data['family_id'])) {
             return $this->json(['error' => 'Missing required fields'], 400);
         }
 
         $appointment = new Appointment();
+        $appointment->setTitle($data['title']);
         $appointment->setDate(new \DateTime($data['date']));
         $appointment->setStatus($data['status']);
         $appointment->setAppointmentType($data['type']);

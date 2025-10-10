@@ -9,65 +9,103 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/api/appointment-types', name: 'api_appointment_types_')]
+#[Route('/api/v1/appointment-types', name: 'api_appointments_types_')]
 class AppointmentTypeController extends AbstractController
 {
-    // GET /api/appointment-types → liste tous les types de rendez-vous
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly AppointmentTypeRepository $appointmentTypeRepository,
+        private readonly SerializerInterface $serializer,
+        private readonly ValidatorInterface $validator
+    ) {}
+
+
+    // =========================================================
+    // GET /api/v1/appointments-types
+    // =========================================================
     #[Route('', name: 'list', methods: ['GET'])]
-    public function list(AppointmentTypeRepository $appointmentTypeRepository): JsonResponse
+    public function list(): JsonResponse
     {
-        $appointmentTypes = $appointmentTypeRepository->findAll();
+        $appointmentsTypes = $this->appointmentTypeRepository->findAll();
 
-        // On convertit les entités en tableau JSON simple
-        $data = array_map(function (AppointmentType $appointmentType) {
-            return [
-                'id' => $appointmentType->getId(),
-                'name' => $appointmentType->getName(),
-                'description' => $appointmentType->getDescription(),
-            ];
-        }, $appointmentTypes);
+        // On sérialise directement selon les groupes configurés
+        $json = $this->serializer->serialize(
+            $appointmentsTypes,
+            'json',
+            ['groups' => ['appointmentType:read']]
+        );
 
-        return $this->json($data);
+        return new JsonResponse($json, JsonResponse::HTTP_OK, [], true);
     }
 
-    // GET /api/appointment-types/{id} → récupère un type de rendez-vous par ID
+
+    // =========================================================
+    // GET /api/v1/appointments-types/{id}
+    // =========================================================
     #[Route('/{id}', name: 'show', methods: ['GET'])]
     public function show(AppointmentType $appointmentType): JsonResponse
     {
         if (!$appointmentType) {
-            return $this->json(['error' => 'Appointment Type not found'], 404);
+            return $this->json(['error' => 'Appointment not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        return $this->json([
-            'id' => $appointmentType->getId(),
-            'name' => $appointmentType->getName(),
-            'description' => $appointmentType->getDescription(),
-        ]);
+        $json = $this->serializer->serialize(
+            $appointmentType,
+            'json',
+            ['groups' => ['appointmentType:read']]
+        );
+
+        return new JsonResponse($json, JsonResponse::HTTP_OK, [], true);
     }
-    // POST /api/appointment-types → crée un nouveau type de rendez-vous
+
+
+
+    // =========================================================
+    // POST /api/v1/appointment-types
+    // =========================================================
+
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request, EntityManagerInterface $em): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        $appointmentType = $this->serializer->deserialize(
+            $request->getContent(),
+            AppointmentType::class,
+            'json',
+            ['groups' => ['appointmentType:write']]
+        );
 
-        if (empty($data['name'])) {
-            return $this->json(['error' => 'Name is required'], 400);
+        // Validation
+        $errors = $this->validator->validate($appointmentType);
+        if (count($errors) > 0) {
+            return $this->json($errors, JsonResponse::HTTP_BAD_REQUEST);
         }
+
+        // Gestion des relations (récupérées par ID)
+        $data = json_decode($request->getContent(), true);
 
         $appointmentType = new AppointmentType();
         $appointmentType->setName($data['name']);
         $appointmentType->setDescription($data['description'] ?? null);
 
-        $em->persist($appointmentType);
-        $em->flush();
 
-        return $this->json([
-            'id' => $appointmentType->getId(),
-            'name' => $appointmentType->getName(),
-            'description' => $appointmentType->getDescription(),
-        ], 201);
+        // Sauvegarde
+        $this->em->persist($appointmentType);
+        $this->em->flush();
+
+        $json = $this->serializer->serialize(
+            $appointmentType,
+            'json',
+            ['groups' => ['appointmentType:read']]
+        );
+
+        return new JsonResponse($json, JsonResponse::HTTP_CREATED, [], true);
     }
+
+
+    // ATTENTION : les méthodes update et delete sont commentées car non utilisées pour l'instant ET non serialisees
     // // PUT /api/appointment-types/{id} → met à jour un type de rendez-vous
     // #[Route('/{id}', name: 'update', methods: ['PUT'])]
     // public function update(Request $request, AppointmentType $appointmentType, EntityManagerInterface $em): JsonResponse

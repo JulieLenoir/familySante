@@ -1,96 +1,136 @@
 <?php
 
-
 namespace App\Controller\Api;
 
 use App\Entity\Appointment;
 use App\Repository\AppointmentRepository;
+use App\Repository\AppointmentTypeRepository;
+use App\Repository\ProfessionalRepository;
+use App\Repository\FamilyMemberRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Serializer\SerializerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-#[Route('/api/appointments', name: 'api_appointments_')]
+#[Route('/api/v1/appointments', name: 'api_appointments_')]
 class AppointmentController extends AbstractController
 {
-    // GET /api/appointments → liste tous les rendez-vous
+    public function __construct(
+        private readonly EntityManagerInterface $em,
+        private readonly AppointmentRepository $appointmentRepository,
+        private readonly SerializerInterface $serializer,
+        private readonly ValidatorInterface $validator
+    ) {}
+
+    // =========================================================
+    // GET /api/v1/appointments
+    // =========================================================
     #[Route('', name: 'list', methods: ['GET'])]
-    public function list(AppointmentRepository $appointmentRepository): JsonResponse
+    public function list(): JsonResponse
     {
-        $appointments = $appointmentRepository->findAll();
+        $appointments = $this->appointmentRepository->findAll();
 
+        // On sérialise directement selon les groupes configurés
+        $json = $this->serializer->serialize(
+            $appointments,
+            'json',
+            ['groups' => ['appointment:read']]
+        );
 
-        $data = array_map(function (Appointment $appointment) {
-            return [
-                'id' => $appointment->getId(),
-                'title' => $appointment->getTitle(),
-                'date' => $appointment->getDate()->format('Y-m-d H:i:s'),
-                'status' => $appointment->getStatus(),
-                'type' => $appointment->getAppointmentType(),
-                'professional' => $appointment->getProfessional()->getName(),
-                'family' => $appointment->getFamilyMember()->getFirstName(),
-                'notes' => $appointment->getNote(),
-            ];
-        }, $appointments);
-
-        return $this->json($data);
+        return new JsonResponse($json, JsonResponse::HTTP_OK, [], true);
     }
-    // GET /api/appointments/{id} → récupère un rendez-vous par ID
+
+    // =========================================================
+    // GET /api/v1/appointments/{id}
+    // =========================================================
     #[Route('/{id}', name: 'show', methods: ['GET'])]
     public function show(Appointment $appointment): JsonResponse
     {
         if (!$appointment) {
-            return $this->json(['error' => 'Appointment not found'], 404);
+            return $this->json(['error' => 'Appointment not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        return $this->json([
-            'id' => $appointment->getId(),
-            'title' => $appointment->getTitle(),
-            'date' => $appointment->getDate()->format('Y-m-d H:i:s'),
-            'status' => $appointment->getStatus(),
-            'type' => $appointment->getAppointmentType(),
-            'professional' => $appointment->getProfessional()->getName(),
-            'family' => $appointment->getFamilyMember()->getFirstName(),
-            'notes' => $appointment->getNote(),
-        ]);
+        $json = $this->serializer->serialize(
+            $appointment,
+            'json',
+            ['groups' => ['appointment:read']]
+        );
+
+        return new JsonResponse($json, JsonResponse::HTTP_OK, [], true);
     }
 
-    // POST /api/appointments → crée un nouveau rendez-vous
+    // =========================================================
+    // POST /api/v1/appointments
+    // =========================================================
     #[Route('', name: 'create', methods: ['POST'])]
-    public function create(Request $request, EntityManagerInterface $em): JsonResponse
-    {
+    public function create(
+        Request $request,
+        AppointmentTypeRepository $typeRepo,
+        ProfessionalRepository $proRepo,
+        FamilyMemberRepository $familyRepo
+    ): JsonResponse {
+        // Désérialisation directe du JSON reçu → objet Appointment
+        $appointment = $this->serializer->deserialize(
+            $request->getContent(),
+            Appointment::class,
+            'json',
+            ['groups' => ['appointment:write']]
+        );
+
+        // Validation
+        $errors = $this->validator->validate($appointment);
+        if (count($errors) > 0) {
+            return $this->json($errors, JsonResponse::HTTP_BAD_REQUEST);
+        }
+
+        // Gestion des relations (récupérées par ID)
         $data = json_decode($request->getContent(), true);
 
-        if (empty($data['title']) || empty($data['date']) || empty($data['status']) || empty($data['type']) || empty($data['professional_id']) || empty($data['family_id'])) {
-            return $this->json(['error' => 'Missing required fields'], 400);
+        if (!isset($data['appointmentType'], $data['professional'], $data['familyMember'])) {
+            return $this->json(['error' => 'Missing required related entities'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        $appointment = new Appointment();
-        $appointment->setTitle($data['title']);
-        $appointment->setDate(new \DateTime($data['date']));
-        $appointment->setStatus($data['status']);
-        $appointment->setAppointmentType($data['type']);
+        $appointmentType = $typeRepo->find($data['appointmentType']);
+        $professional = $proRepo->find($data['professional']);
+        $familyMember = $familyRepo->find($data['familyMember']);
 
-        $appointment->setNote($data['notes'] ?? null);
+        if (!$appointmentType || !$professional || !$familyMember) {
+            return $this->json(['error' => 'Invalid related entity ID(s)'], JsonResponse::HTTP_BAD_REQUEST);
+        }
 
-        $em->persist($appointment);
-        $em->flush();
+        $appointment->setAppointmentType($appointmentType);
+        $appointment->setProfessional($professional);
+        $appointment->setFamilyMember($familyMember);
 
-        return $this->json(['message' => 'Appointment created', 'id' => $appointment->getId()], 201);
+        // Sauvegarde
+        $this->em->persist($appointment);
+        $this->em->flush();
+
+        $json = $this->serializer->serialize(
+            $appointment,
+            'json',
+            ['groups' => ['appointment:read']]
+        );
+
+        return new JsonResponse($json, JsonResponse::HTTP_CREATED, [], true);
     }
 
-    // DELETE /api/appointments/{id} → supprime un rendez-vous
+    // =========================================================
+    // DELETE /api/v1/appointments/{id}
+    // =========================================================
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(Appointment $appointment, EntityManagerInterface $em): JsonResponse
+    public function delete(Appointment $appointment): JsonResponse
     {
         if (!$appointment) {
-            return $this->json(['error' => 'Appointment not found'], 404);
+            return $this->json(['error' => 'Appointment not found'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        $em->remove($appointment);
-        $em->flush();
+        $this->em->remove($appointment);
+        $this->em->flush();
 
-        return $this->json(['message' => 'Appointment deleted'], 204);
+        return $this->json(['message' => 'Appointment deleted'], JsonResponse::HTTP_NO_CONTENT);
     }
 }

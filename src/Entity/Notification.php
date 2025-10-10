@@ -2,8 +2,9 @@
 
 namespace App\Entity;
 
-use App\Repository\NotificationRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\NotificationRepository;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: NotificationRepository::class)]
 class Notification
@@ -11,19 +12,24 @@ class Notification
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['notif:read'])]
     private ?int $id = null;
 
     #[ORM\Column]
-    private ?\DateTime $remindAt = null;
+    #[Groups(['notif:read'])]
+    private ?\DateTimeInterface $remindAt = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['notif:read'])]
     private ?string $channel = null;
 
     #[ORM\Column(length: 50)]
+    #[Groups(['notif:read'])]
     private ?string $status = null;
 
     #[ORM\ManyToOne(inversedBy: 'notifications')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['notif:read'])]
     private ?Appointment $appointment = null;
 
     public function getId(): ?int

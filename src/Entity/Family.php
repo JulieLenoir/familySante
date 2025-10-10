@@ -6,6 +6,7 @@ use App\Repository\FamilyRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: FamilyRepository::class)]
 class Family
@@ -13,21 +14,25 @@ class Family
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['family:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['family:read', 'family:write'])]
     private ?string $name = null;
 
     /**
      * @var Collection<int, User>
      */
     #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'families')]
+    #[Groups(['family:read'])]
     private Collection $users;
 
     /**
      * @var Collection<int, FamilyMember>
      */
     #[ORM\OneToMany(targetEntity: FamilyMember::class, mappedBy: 'family')]
+    #[Groups(['family:read'])]
     private Collection $familyMembers;
 
     public function __construct()

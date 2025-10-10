@@ -2,8 +2,9 @@
 
 namespace App\Entity;
 
-use App\Repository\AuditLogRepository;
 use Doctrine\ORM\Mapping as ORM;
+use App\Repository\AuditLogRepository;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: AuditLogRepository::class)]
 class AuditLog
@@ -11,21 +12,27 @@ class AuditLog
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['auditLog:read'])]
     private ?int $id = null;
 
     #[ORM\ManyToOne(inversedBy: 'auditLogs')]
+    #[Groups(['auditLog:read'])]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['auditLog:read'])]
     private ?string $action = null;
 
     #[ORM\Column]
-    private ?\DateTime $timestamp = null;
+    #[Groups(['auditLog:read'])]
+    private ?\DateTimeInterface $timestamp = null;
 
     #[ORM\Column(length: 100)]
+    #[Groups(['auditLog:read'])]
     private ?string $entityType = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['auditLog:read'])]
     private ?string $entityId = null;
 
     public function getId(): ?int

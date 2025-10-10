@@ -8,6 +8,7 @@ use App\Repository\ProfessionalRepository;
 use Doctrine\Common\Collections\Collection;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: ProfessionalRepository::class)]
 #[UniqueEntity(
@@ -21,30 +22,39 @@ class Professional
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
+    #[Groups(['professional:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['professional:read', 'professional:write'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['professional:read', 'professional:write'])]
     private ?string $speciality = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['professional:read', 'professional:write'])]
     private ?string $bookingLink = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['professional:read', 'professional:write'])]
     private ?string $address = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['professional:read', 'professional:write'])]
     private ?string $city = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups(['professional:read', 'professional:write'])]
     private ?int $phone = null;
 
     #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['professional:read', 'professional:write'])]
     private ?string $additionalInformation = null;
 
     #[ORM\OneToMany(mappedBy: 'professional', targetEntity: Appointment::class)]
+    #[Groups(['professional:read'])]
     private Collection $appointments;
 
     public function __construct()

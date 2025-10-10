@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/api/family-members', name: 'api_family_members_')]
+#[Route('/api/v1/family-members', name: 'api_family_members_')]
 class FamilyMemberController extends AbstractController
 {
     // GET /api/family-members → liste tous les membres de la famille

@@ -16,7 +16,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
  */
 
 
-#[Route('/api/users', name: 'api_users_')]
+#[Route('/api/v1/users', name: 'api_users_')]
 class UserController extends AbstractController
 {
     /**

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/api/appointment-types', name: 'api_appointment_types_')]
+#[Route('/api/v1/appointment-types', name: 'api_appointment_types_')]
 class AppointmentTypeController extends AbstractController
 {
     // GET /api/appointment-types → liste tous les types de rendez-vous

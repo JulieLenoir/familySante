@@ -167,17 +167,17 @@ class ProfessionalController extends AbstractController
         return $this->json(['message' => 'Mise à jour effectuée.']);
     }
 
-    /**
-     * DELETE /api/professionals/{id}
-     * Supprime un professionnel.
-     */
-    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
-    public function delete(Professional $professional, EntityManagerInterface $em): JsonResponse
-    {
-        $em->remove($professional);
-        $em->flush();
+    // /**
+    //  * DELETE /api/professionals/{id}
+    //  * Supprime un professionnel.
+    //  */
+    // #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
+    // public function delete(Professional $professional, EntityManagerInterface $em): JsonResponse
+    // {
+    //     $em->remove($professional);
+    //     $em->flush();
 
-        // 204 No Content est classique pour une suppression REST
-        return $this->json(null, Response::HTTP_NO_CONTENT);
-    }
+    //     // 204 No Content est classique pour une suppression REST
+    //     return $this->json(null, Response::HTTP_NO_CONTENT);
+    // }
 }

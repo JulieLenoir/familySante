@@ -16,6 +16,9 @@ class Appointment
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(length: 100)]
+    private ?string $title = null;
+
     #[ORM\Column]
     private ?\DateTime $date = null;
 
@@ -57,7 +60,17 @@ class Appointment
     {
         return $this->id;
     }
+    public function getTitle(): ?string
+    {
+        return $this->title;
+    }
 
+    public function setTitle(?string $title): static
+    {
+        $this->title = $title;
+
+        return $this;
+    }
     public function getDate(): ?\DateTime
     {
         return $this->date;
